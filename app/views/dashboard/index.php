@@ -134,6 +134,7 @@
                         <th>Supplier</th>
                         <th>Jumlah</th>
                         <th>Tgl Pesan</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -143,6 +144,14 @@
                         <td><?= htmlspecialchars($order['supplier_name']); ?></td>
                         <td><?= number_format($order['order_quantity']); ?> <?= htmlspecialchars($order['product_unit']); ?></td>
                         <td><?= date('d/m/Y', strtotime($order['date'])); ?></td>
+                        <td>
+                            <form action="<?= BASEURL; ?>/products/<?= $order['product_id']; ?>/orders" method="POST" style="display: flex; gap: 8px; align-items: center;">
+                                <input type="hidden" name="action" value="receive_order">
+                                <input type="hidden" name="order_id" value="<?= $order['id']; ?>">
+                                <input type="date" name="received_date" style="padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e0e0e0; width: 150px;" value="<?= date('Y-m-d'); ?>" required>
+                                <button type="submit" class="btn btn-sm btn-primary">Terima</button>
+                            </form>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

@@ -6,8 +6,11 @@
         <?php endif; ?>
     </div>
     <div class="card-body">
+        <div class="mb-3">
+            <input type="text" id="searchProduct" class="form-control" placeholder="Cari produk berdasarkan nama...">
+        </div>
         <div class="table-responsive">
-            <table class="table">
+            <table class="table" id="productTable">
                 <thead>
                     <tr>
                         <th>Nama</th>
@@ -53,3 +56,23 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('searchProduct').addEventListener('keyup', function() {
+    const searchValue = this.value.toLowerCase();
+    const table = document.getElementById('productTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const nameCell = rows[i].getElementsByTagName('td')[0];
+        if (nameCell) {
+            const textValue = nameCell.textContent || nameCell.innerText;
+            if (textValue.toLowerCase().indexOf(searchValue) > -1) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    }
+});
+</script>
