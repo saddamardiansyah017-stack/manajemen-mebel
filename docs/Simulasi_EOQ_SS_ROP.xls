@@ -1,0 +1,683 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Font ss:FontName="Calibri" ss:Size="11"/>
+  </Style>
+  <Style ss:ID="Header">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#2B5797" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="SubHeader">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#4472C4" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="Title">
+   <Font ss:FontName="Calibri" ss:Size="16" ss:Bold="1" ss:Color="#2B5797"/>
+  </Style>
+  <Style ss:ID="SectionTitle">
+   <Font ss:FontName="Calibri" ss:Size="12" ss:Bold="1" ss:Color="#2B5797"/>
+   <Interior ss:Color="#D6E4F0" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="InputCell">
+   <Interior ss:Color="#FFF2CC" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="ResultCell">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/>
+   <Interior ss:Color="#E2EFDA" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="ResultHighlight">
+   <Font ss:FontName="Calibri" ss:Size="14" ss:Bold="1" ss:Color="#2B5797"/>
+   <Interior ss:Color="#E2EFDA" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#2B5797"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#2B5797"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#2B5797"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#2B5797"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="StatusReorder">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#CC0000"/>
+   <Interior ss:Color="#FDE9D9" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="StatusAman">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#006600"/>
+   <Interior ss:Color="#E2EFDA" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="Label">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/>
+  </Style>
+  <Style ss:ID="Note">
+   <Font ss:FontName="Calibri" ss:Size="9" ss:Italic="1" ss:Color="#666666"/>
+  </Style>
+ </Styles>
+
+ <!-- ==================== SHEET 1: SIMULASI ==================== -->
+ <Worksheet ss:Name="Simulasi EOQ-SS-ROP">
+  <Table ss:DefaultColumnWidth="100">
+   <Column ss:Index="1" ss:Width="200"/>
+   <Column ss:Index="2" ss:Width="150"/>
+   <Column ss:Index="3" ss:Width="120"/>
+   <Column ss:Index="4" ss:Width="200"/>
+
+   <!-- JUDUL -->
+   <Row ss:Height="30">
+    <Cell ss:StyleID="Title"><Data ss:Type="String">SIMULASI EOQ, SAFETY STOCK &amp; ROP</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Isi sel berwarna kuning untuk menghitung otomatis. Hasil muncul di sel hijau.</Data></Cell>
+   </Row>
+   <Row/>
+
+   <!-- SECTION: PARAMETER INPUT -->
+   <Row>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">PARAMETER INPUT</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Nilai</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Satuan</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Keterangan</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Biaya Pemesanan (S)</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">50000</Data></Cell>
+    <Cell><Data ss:Type="String">Rp / pesanan</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Biaya setiap kali memesan</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Biaya Penyimpanan (H)</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">5000</Data></Cell>
+    <Cell><Data ss:Type="String">Rp / unit / tahun</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Biaya simpan per unit per tahun</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Lead Time Rata-rata</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">7</Data></Cell>
+    <Cell><Data ss:Type="String">hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Rata-rata waktu tunggu pengiriman</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Lead Time Maksimal</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">10</Data></Cell>
+    <Cell><Data ss:Type="String">hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Waktu tunggu paling lama</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Stok Saat Ini</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">50</Data></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Stok di gudang saat ini</Data></Cell>
+   </Row>
+   <Row/>
+
+   <!-- SECTION: DATA PENJUALAN -->
+   <Row>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">DATA PENJUALAN HARIAN</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Kuantitas</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"/>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Tambahkan baris sesuai kebutuhan</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 1</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">5</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 2</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">8</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 3</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">3</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 4</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">10</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 5</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">6</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 6</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">4</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 7</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">7</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 8</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">9</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 9</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 10</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">6</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 11</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 12</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 13</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 14</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 15</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 16</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 17</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 18</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 19</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 20</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 21</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 22</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 23</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 24</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 25</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 26</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 27</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 28</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 29</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 30</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row/>
+
+   <!-- SECTION: KALKULASI OTOMATIS -->
+   <Row>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">KALKULASI OTOMATIS</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Hasil</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Satuan</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Formula</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Jumlah Hari Aktif (ada penjualan)</Data></Cell>
+    <Cell ss:StyleID="ResultCell"><Data ss:Type="Number">10</Data><NamedCell ss:Name="JumlahHariAktif"/></Cell>
+    <Cell><Data ss:Type="String">hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">COUNTIF(B14:B43,"&gt;0")</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Total Penjualan</Data></Cell>
+    <Cell ss:StyleID="ResultCell"><Data ss:Type="Number">60</Data><NamedCell ss:Name="TotalPenjualan"/></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">SUM(B14:B43)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Permintaan Rata-rata/hari</Data></Cell>
+    <Cell ss:StyleID="ResultCell"><Data ss:Type="Number">6</Data><NamedCell ss:Name="AvgDaily"/></Cell>
+    <Cell><Data ss:Type="String">unit/hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Total Penjualan / Jumlah Hari Aktif</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Permintaan Maks/hari</Data></Cell>
+    <Cell ss:StyleID="ResultCell"><Data ss:Type="Number">10</Data><NamedCell ss:Name="MaxDaily"/></Cell>
+    <Cell><Data ss:Type="String">unit/hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">MAX(B14:B43)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Demand Tahunan (D) — Proyeksi</Data></Cell>
+    <Cell ss:StyleID="ResultCell"><Data ss:Type="Number">2190</Data><NamedCell ss:Name="DemandTahunan"/></Cell>
+    <Cell><Data ss:Type="String">unit/tahun</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Avg Daily × 365</Data></Cell>
+   </Row>
+   <Row/>
+
+   <!-- SECTION: HASIL EOQ -->
+   <Row>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">HASIL PERHITUNGAN</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Hasil</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Satuan</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Formula</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">EOQ (Economic Order Quantity)</Data></Cell>
+    <Cell ss:StyleID="ResultHighlight"><Data ss:Type="Number">210</Data><NamedCell ss:Name="EOQ"/></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">ROUNDUP(SQRT((2 × D × S) / H), 0)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Safety Stock (SS)</Data></Cell>
+    <Cell ss:StyleID="ResultHighlight"><Data ss:Type="Number">58</Data><NamedCell ss:Name="SafetyStock"/></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">(MaxDaily × LT_Max) − (AvgDaily × LT_Avg)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">ROP (Reorder Point)</Data></Cell>
+    <Cell ss:StyleID="ResultHighlight"><Data ss:Type="Number">100</Data><NamedCell ss:Name="ROP"/></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">(AvgDaily × LT_Avg) + Safety Stock</Data></Cell>
+   </Row>
+   <Row/>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">STATUS REORDER</Data></Cell>
+    <Cell ss:StyleID="StatusReorder"><Data ss:Type="String">⚠️ PERLU REORDER</Data></Cell>
+    <Cell/>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Stok (50) ≤ ROP (100) → Perlu Reorder</Data></Cell>
+   </Row>
+   <Row/>
+   <Row>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">📌 Catatan: Buka file ini di Microsoft Excel atau LibreOffice Calc.</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">    Ubah nilai di sel kuning, lalu hitung ulang secara manual atau gunakan sheet "Dengan Formula".</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+
+ <!-- ==================== SHEET 2: DENGAN FORMULA ==================== -->
+ <Worksheet ss:Name="Dengan Formula">
+  <Table ss:DefaultColumnWidth="100">
+   <Column ss:Index="1" ss:Width="200"/>
+   <Column ss:Index="2" ss:Width="150"/>
+   <Column ss:Index="3" ss:Width="120"/>
+   <Column ss:Index="4" ss:Width="280"/>
+
+   <!-- JUDUL -->
+   <Row ss:Height="30">
+    <Cell ss:StyleID="Title"><Data ss:Type="String">SIMULASI EOQ, SAFETY STOCK &amp; ROP (FORMULA)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Sheet ini menggunakan formula Excel. Ubah sel kuning dan hasil akan terhitung otomatis.</Data></Cell>
+   </Row>
+   <Row/>
+
+   <!-- PARAMETER INPUT -->
+   <Row>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">PARAMETER INPUT</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Nilai</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Satuan</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Keterangan</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Biaya Pemesanan (S)</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">50000</Data></Cell>
+    <Cell><Data ss:Type="String">Rp / pesanan</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Biaya setiap kali memesan</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Biaya Penyimpanan (H)</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">5000</Data></Cell>
+    <Cell><Data ss:Type="String">Rp / unit / tahun</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Biaya simpan per unit per tahun</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Lead Time Rata-rata</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">7</Data></Cell>
+    <Cell><Data ss:Type="String">hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Rata-rata waktu tunggu pengiriman</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Lead Time Maksimal</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">10</Data></Cell>
+    <Cell><Data ss:Type="String">hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Waktu tunggu paling lama</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Stok Saat Ini</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">50</Data></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">Stok di gudang saat ini</Data></Cell>
+   </Row>
+   <Row/>
+
+   <!-- DATA PENJUALAN -->
+   <Row>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">DATA PENJUALAN HARIAN</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Kuantitas</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"/>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Input data penjualan per hari</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 1</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">5</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 2</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">8</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 3</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">3</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 4</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">10</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 5</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">6</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 6</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">4</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 7</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">7</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 8</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">9</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 9</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 10</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">6</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 11</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 12</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 13</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 14</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 15</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 16</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 17</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 18</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 19</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 20</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 21</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 22</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 23</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 24</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 25</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 26</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 27</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 28</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 29</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Hari 30</Data></Cell>
+    <Cell ss:StyleID="InputCell"><Data ss:Type="Number">0</Data></Cell>
+   </Row>
+   <Row/>
+
+   <!-- KALKULASI OTOMATIS -->
+   <Row>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">KALKULASI OTOMATIS</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Hasil</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Satuan</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Formula Excel</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Jumlah Hari Aktif</Data></Cell>
+    <Cell ss:StyleID="ResultCell" ss:Formula="=COUNTIF(R[-30]C:R[-1]C,&quot;&gt;0&quot;)"><Data ss:Type="Number">10</Data></Cell>
+    <Cell><Data ss:Type="String">hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">=COUNTIF(B12:B41,"&gt;0")</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Total Penjualan</Data></Cell>
+    <Cell ss:StyleID="ResultCell" ss:Formula="=SUM(R[-31]C:R[-2]C)"><Data ss:Type="Number">60</Data></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">=SUM(B12:B41)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Permintaan Rata-rata/hari</Data></Cell>
+    <Cell ss:StyleID="ResultCell" ss:Formula="=IF(R[-2]C=0,0,R[-1]C/R[-2]C)"><Data ss:Type="Number">6</Data></Cell>
+    <Cell><Data ss:Type="String">unit/hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">=IF(B43=0,0,B44/B43)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Permintaan Maks/hari</Data></Cell>
+    <Cell ss:StyleID="ResultCell" ss:Formula="=MAX(R[-34]C:R[-5]C)"><Data ss:Type="Number">10</Data></Cell>
+    <Cell><Data ss:Type="String">unit/hari</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">=MAX(B12:B41)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Demand Tahunan (D)</Data></Cell>
+    <Cell ss:StyleID="ResultCell" ss:Formula="=R[-2]C*365"><Data ss:Type="Number">2190</Data></Cell>
+    <Cell><Data ss:Type="String">unit/tahun</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">=B45*365</Data></Cell>
+   </Row>
+   <Row/>
+
+   <!-- HASIL -->
+   <Row>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">HASIL PERHITUNGAN</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Hasil</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Satuan</Data></Cell>
+    <Cell ss:StyleID="SectionTitle"><Data ss:Type="String">Formula Excel</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">EOQ (Economic Order Quantity)</Data></Cell>
+    <Cell ss:StyleID="ResultHighlight" ss:Formula="=IF(OR(R[-4]C=0,R8C[-46]=0,R8C[-46]=0),0,ROUNDUP(SQRT((2*R[-4]C*R5C)/(R6C)),0))"><Data ss:Type="Number">210</Data></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">=ROUNDUP(SQRT((2*D*S)/H),0)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">Safety Stock (SS)</Data></Cell>
+    <Cell ss:StyleID="ResultHighlight" ss:Formula="=MAX(0,ROUNDUP((R[-6]C*R8C)-(R[-7]C*R7C),0))"><Data ss:Type="Number">58</Data></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">=(MaxDaily×LT_Max)−(AvgDaily×LT_Avg)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">ROP (Reorder Point)</Data></Cell>
+    <Cell ss:StyleID="ResultHighlight" ss:Formula="=ROUNDUP((R[-8]C*R7C)+R[-1]C,0)"><Data ss:Type="Number">100</Data></Cell>
+    <Cell><Data ss:Type="String">unit</Data></Cell>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">=(AvgDaily×LT_Avg)+SS</Data></Cell>
+   </Row>
+   <Row/>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">STATUS REORDER</Data></Cell>
+    <Cell ss:StyleID="ResultCell" ss:Formula="=IF(R9C&lt;=R[-2]C,&quot;⚠️ PERLU REORDER&quot;,&quot;✓ STOK AMAN&quot;)"><Data ss:Type="String">⚠️ PERLU REORDER</Data></Cell>
+    <Cell/>
+    <Cell ss:StyleID="Note"><Data ss:Type="String">=IF(Stok&lt;=ROP,"PERLU REORDER","STOK AMAN")</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+
+ <!-- ==================== SHEET 3: PANDUAN ==================== -->
+ <Worksheet ss:Name="Panduan">
+  <Table ss:DefaultColumnWidth="100">
+   <Column ss:Index="1" ss:Width="600"/>
+
+   <Row ss:Height="30">
+    <Cell ss:StyleID="Title"><Data ss:Type="String">PANDUAN PENGGUNAAN</Data></Cell>
+   </Row>
+   <Row/>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">1. Cara Menggunakan Simulasi</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   - Buka sheet "Dengan Formula" untuk kalkulasi otomatis</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   - Isi parameter di bagian kuning: Biaya Pemesanan (S), Biaya Penyimpanan (H), Lead Time Avg, Lead Time Max, Stok</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   - Isi data penjualan harian di kolom "Kuantitas" (hari tanpa penjualan biarkan 0)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   - Hasil EOQ, Safety Stock, ROP, dan Status akan terhitung otomatis</Data></Cell>
+   </Row>
+   <Row/>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">2. Penjelasan Formula</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   EOQ = √((2 × D × S) / H)  →  dibulatkan ke atas</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   Safety Stock = (Permintaan Maks × Lead Time Maks) − (Permintaan Rata-rata × Lead Time Rata-rata)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   ROP = (Permintaan Rata-rata × Lead Time Rata-rata) + Safety Stock</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   Status = Jika Stok ≤ ROP → "Perlu Reorder", Jika Stok > ROP → "Aman"</Data></Cell>
+   </Row>
+   <Row/>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">3. Keterangan Variabel</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   D = Demand Tahunan (proyeksi dari rata-rata harian × 365)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   S = Biaya Pemesanan per pesanan (ordering cost)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   H = Biaya Penyimpanan per unit per tahun (holding cost)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   Lead Time Avg = Rata-rata waktu tunggu pengiriman dari supplier</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   Lead Time Max = Waktu tunggu pengiriman paling lama</Data></Cell>
+   </Row>
+   <Row/>
+   <Row>
+    <Cell ss:StyleID="Label"><Data ss:Type="String">4. Tips</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   - Gunakan data penjualan minimal 7-30 hari untuk hasil yang lebih akurat</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   - Hari tanpa penjualan (nilai 0) TIDAK dihitung sebagai hari aktif</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   - Tambah baris penjualan jika data lebih dari 30 hari (sesuaikan range formula)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">   - Sheet "Simulasi EOQ-SS-ROP" berisi contoh nilai statis untuk referensi manual</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+</Workbook>

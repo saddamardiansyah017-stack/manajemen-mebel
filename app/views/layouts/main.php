@@ -29,17 +29,18 @@
     foreach ($notifAllProducts as $notifProduct) {
         $notifDemandData = $notifSaleModel->getAnnualizedDemand($notifProduct['id']);
         $notifDemand = $notifDemandData['annualized_demand'];
-        $notifLeadTime = $notifOrderModel->getAverageLeadTime($notifProduct['id']);
+        $notifLeadTimeStats = $notifOrderModel->getLeadTimeStats($notifProduct['id']);
         $notifDemandStats = $notifSaleModel->getDailyDemandStats($notifProduct['id']);
 
-        if ($notifLeadTime > 0 && $notifDemandStats['avg_daily'] > 0) {
+        if ($notifLeadTimeStats['avg'] > 0 && $notifDemandStats['avg_daily'] > 0) {
             $notifMetrics = InventoryCalculator::calculateAll([
                 'demand'        => $notifDemand,
                 'ordering_cost' => (float) $notifProduct['ordering_cost'],
                 'holding_cost'  => (float) $notifProduct['holding_cost'],
                 'max_daily'     => $notifDemandStats['max_daily'],
                 'avg_daily'     => $notifDemandStats['avg_daily'],
-                'lead_time'     => $notifLeadTime,
+                'lead_time'     => $notifLeadTimeStats['avg'],
+                'lead_time_max' => $notifLeadTimeStats['max'],
                 'stock'         => (int) $notifProduct['stock'],
             ]);
 
