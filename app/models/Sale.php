@@ -84,10 +84,34 @@ class Sale {
         return $this->db->rowCount();
     }
 
+    public function getSaleById($id) {
+        $this->db->query('SELECT * FROM sales WHERE id = :id');
+        $this->db->bind(':id', $id);
+        return $this->db->single();
+    }
+
+    public function deleteSale($id) {
+        $this->db->query('DELETE FROM sales WHERE id = :id');
+        $this->db->bind(':id', $id);
+        $this->db->execute();
+        return $this->db->rowCount();
+    }
+
     public function decrementProductStock($product_id, $qty) {
         $this->db->query('
             UPDATE products SET stock = stock - :qty, updated_at = NOW()
             WHERE id = :product_id AND stock >= :qty
+        ');
+        $this->db->bind(':qty',        $qty);
+        $this->db->bind(':product_id', $product_id);
+        $this->db->execute();
+        return $this->db->rowCount();
+    }
+
+    public function incrementProductStock($product_id, $qty) {
+        $this->db->query('
+            UPDATE products SET stock = stock + :qty, updated_at = NOW()
+            WHERE id = :product_id
         ');
         $this->db->bind(':qty',        $qty);
         $this->db->bind(':product_id', $product_id);
@@ -148,6 +172,154 @@ class Sale {
         ');
         $this->db->bind(':days', $days);
         $this->db->bind(':limit', $limit);
+        return $this->db->resultSet();
+    }
+
+    // ===== Period-based Methods untuk Filter Laporan =====
+
+    public function getSalesByPeriod($product_id, $from, $to) {
+        $this->db->query('
+            SELECT s.*, u.username AS created_by_name
+            FROM sales s
+            LEFT JOIN users u ON s.created_by = u.id
+            WHERE s.product_id = :product_id
+            AND s.date >= :from
+            AND s.date <= :to
+            ORDER BY s.date DESC
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+        return $this->db->resultSet();
+    }
+
+    public function getTotalSalesByPeriod($product_id, $from, $to) {
+        $this->db->query('
+            SELECT SUM(quantity) as total_quantity, SUM(amount) as total_amount
+            FROM sales
+            WHERE product_id = :product_id
+            AND date >= :from
+            AND date <= :to
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+        $result = $this->db->single();
+        return [
+            'quantity' => $result['total_quantity'] ? (int) $result['total_quantity'] : 0,
+            'amount' => $result['total_amount'] ? (float) $result['total_amount'] : 0,
+        ];
+    }
+
+    public function getAnnualizedDemandByPeriod($product_id, $from, $to) {
+        $this->db->query('
+            SELECT SUM(quantity) AS total_demand
+            FROM sales
+            WHERE product_id = :product_id
+            AND date >= :from
+            AND date <= :to
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+        $result = $this->db->single();
+
+        $totalDemand = $result['total_demand'] ? (int) $result['total_demand'] : 0;
+        
+        $fromDate = new DateTime($from);
+        $toDate = new DateTime($to);
+        $daysSpan = $toDate->diff($fromDate)->days;
+
+        $calc = InventoryCalculator::annualizeDemand($totalDemand, $daysSpan);
+
+        return [
+            'annualized_demand' => $calc['annualized_demand'],
+            'data_months' => $calc['data_months'],
+            'raw_demand' => $totalDemand,
+        ];
+    }
+
+    public function getDailyDemandStatsByPeriod($product_id, $from, $to) {
+        $this->db->query('
+            SELECT 
+                MAX(quantity) AS max_daily,
+                SUM(quantity) AS total_demand,
+                DATEDIFF(:to, :from) AS days_span
+            FROM sales
+            WHERE product_id = :product_id
+            AND date >= :from2
+            AND date <= :to2
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+        $this->db->bind(':from2', $from);
+        $this->db->bind(':to2', $to);
+        $result = $this->db->single();
+
+        $maxDaily = $result['max_daily'] ? (float) $result['max_daily'] : 0;
+        $totalDemand = $result['total_demand'] ? (int) $result['total_demand'] : 0;
+        $daysSpan = $result['days_span'] ? (int) $result['days_span'] : 0;
+        
+        $avgDaily = ($daysSpan > 0) ? $totalDemand / $daysSpan : 0;
+
+        return [
+            'max_daily' => $maxDaily,
+            'avg_daily' => $avgDaily,
+        ];
+    }
+
+    public function getAllSalesSummaryByPeriod($from, $to) {
+        $this->db->query('
+            SELECT 
+                COUNT(DISTINCT product_id) as total_products,
+                SUM(quantity) as total_quantity,
+                SUM(amount) as total_amount
+            FROM sales
+            WHERE date >= :from
+            AND date <= :to
+        ');
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+        $result = $this->db->single();
+        return [
+            'total_products' => (int) ($result['total_products'] ?? 0),
+            'total_quantity' => (int) ($result['total_quantity'] ?? 0),
+            'total_amount' => (float) ($result['total_amount'] ?? 0),
+        ];
+    }
+
+    public function getTopSellingProductsByPeriod($limit = 5, $from, $to) {
+        $this->db->query('
+            SELECT p.id, p.name, p.unit, SUM(s.quantity) as total_sold, SUM(s.amount) as total_amount
+            FROM sales s
+            JOIN products p ON s.product_id = p.id
+            WHERE s.date >= :from
+            AND s.date <= :to
+            GROUP BY p.id, p.name, p.unit
+            ORDER BY total_sold DESC
+            LIMIT :limit
+        ');
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+        $this->db->bind(':limit', $limit);
+        return $this->db->resultSet();
+    }
+
+    public function getProductsWithoutSalesByPeriod($from, $to) {
+        $this->db->query('
+            SELECT p.id, p.name, p.unit, p.stock
+            FROM products p
+            WHERE NOT EXISTS (
+                SELECT 1 FROM sales s
+                WHERE s.product_id = p.id
+                AND s.date >= :from
+                AND s.date <= :to
+            )
+            ORDER BY p.name
+        ');
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
         return $this->db->resultSet();
     }
 }

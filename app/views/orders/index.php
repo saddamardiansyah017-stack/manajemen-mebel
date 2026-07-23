@@ -193,14 +193,22 @@
                                 <td>Rp <?= number_format($row['amount'], 0, ',', '.'); ?></td>
                                 <td class="text-muted text-sm"><?= $row['keterangan']; ?></td>
                                 <td>
-                                    <?php if ($row['type'] === 'order'): ?>
-                                    <form action="<?= BASEURL; ?>/products/<?= $data['product']['id']; ?>/orders" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini? Stok akan dikurangi sesuai dengan kuantitas pesanan.');">
-                                        <input type="hidden" name="action" value="delete_order">
-                                        <input type="hidden" name="order_id" value="<?= $row['id']; ?>">
-                                        <button type="submit" class="btn btn-sm" style="padding: 0.2rem 0.5rem; background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5);" title="Hapus Pesanan">Hapus</button>
-                                    </form>
+                                    <?php if($_SESSION['role'] === 'owner'): ?>
+                                        <?php if ($row['type'] === 'order'): ?>
+                                        <form action="<?= BASEURL; ?>/products/<?= $data['product']['id']; ?>/orders" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini? Stok akan dikurangi sesuai dengan kuantitas pesanan.');">
+                                            <input type="hidden" name="action" value="delete_order">
+                                            <input type="hidden" name="order_id" value="<?= $row['id']; ?>">
+                                            <button type="submit" class="btn btn-sm" style="padding: 0.2rem 0.5rem; background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5);" title="Hapus Pesanan">Hapus</button>
+                                        </form>
+                                        <?php else: ?>
+                                        <form action="<?= BASEURL; ?>/products/<?= $data['product']['id']; ?>/orders" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus penjualan ini? Stok akan dikembalikan.');">
+                                            <input type="hidden" name="action" value="delete_sale">
+                                            <input type="hidden" name="sale_id" value="<?= $row['id']; ?>">
+                                            <button type="submit" class="btn btn-sm" style="padding: 0.2rem 0.5rem; background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5);" title="Hapus Penjualan">Hapus</button>
+                                        </form>
+                                        <?php endif; ?>
                                     <?php else: ?>
-                                    -
+                                        -
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -230,18 +238,17 @@
                 </div>
                 <div class="form-group">
                     <label for="supplier_id" class="form-label">Pemasok</label>
-                    <select name="supplier_id" id="supplier_id" class="form-control" required>
+                    <select name="supplier_id" id="supplier_id" class="form-control" required onchange="updateEstimasi()">
                         <option value="">-- Pilih Pemasok --</option>
                         <?php foreach ($data['suppliers'] as $supplier): ?>
-                            <option value="<?= $supplier['id']; ?>">
-                                <?= htmlspecialchars($supplier['name']); ?>
+                            <option value="<?= $supplier['id']; ?>" data-lead-time="<?= $supplier['default_lead_time']; ?>">
+                                <?= htmlspecialchars($supplier['name']); ?> (Lead Time: <?= $supplier['default_lead_time']; ?> hari)
                             </option>
                         <?php endforeach; ?>
                     </select>
-                </div>
-                <div class="form-group">
-                    <label for="received_date" class="form-label">Tanggal Diterima <span class="text-muted">(opsional)</span></label>
-                    <input type="date" name="received_date" id="received_date" class="form-control" placeholder="Kosongkan jika belum diterima">
+                    <small id="estimasi_kedatangan" class="text-muted text-sm d-block mt-2" style="display: none;">
+                        📅 Estimasi tiba: <strong id="estimasi_tanggal"></strong>
+                    </small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Total Keseluruhan</label>
@@ -271,18 +278,17 @@
                 </div>
                 <div class="form-group">
                     <label for="eoq_supplier_id" class="form-label">Pemasok</label>
-                    <select name="supplier_id" id="eoq_supplier_id" class="form-control" required>
+                    <select name="supplier_id" id="eoq_supplier_id" class="form-control" required onchange="updateEstimasiEOQ()">
                         <option value="">-- Pilih Pemasok --</option>
                         <?php foreach ($data['suppliers'] as $supplier): ?>
-                            <option value="<?= $supplier['id']; ?>">
-                                <?= htmlspecialchars($supplier['name']); ?>
+                            <option value="<?= $supplier['id']; ?>" data-lead-time="<?= $supplier['default_lead_time']; ?>">
+                                <?= htmlspecialchars($supplier['name']); ?> (Lead Time: <?= $supplier['default_lead_time']; ?> hari)
                             </option>
                         <?php endforeach; ?>
                     </select>
-                </div>
-                <div class="form-group">
-                    <label for="eoq_received_date" class="form-label">Tanggal Diterima <span class="text-muted">(opsional)</span></label>
-                    <input type="date" name="received_date" id="eoq_received_date" class="form-control" placeholder="Kosongkan jika belum diterima">
+                    <small id="estimasi_kedatangan_eoq" class="text-muted text-sm d-block mt-2" style="display: none;">
+                        📅 Estimasi tiba: <strong id="estimasi_tanggal_eoq"></strong>
+                    </small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Total Keseluruhan</label>
@@ -437,6 +443,52 @@ function showToast(message) {
 function submitEOQ() {
     document.getElementById('formEOQ').dataset.confirmed = "true";
     document.getElementById('formEOQ').submit();
+}
+
+function updateEstimasi() {
+    const select = document.getElementById('supplier_id');
+    const estimasiDiv = document.getElementById('estimasi_kedatangan');
+    const estimasiTanggal = document.getElementById('estimasi_tanggal');
+    
+    if (!select || !estimasiDiv || !estimasiTanggal) return;
+    
+    const selectedOption = select.options[select.selectedIndex];
+    const leadTime = parseInt(selectedOption.getAttribute('data-lead-time')) || 0;
+    
+    if (leadTime > 0 && select.value) {
+        const today = new Date();
+        const estimatedDate = new Date(today);
+        estimatedDate.setDate(estimatedDate.getDate() + leadTime);
+        
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        estimasiTanggal.textContent = estimatedDate.toLocaleDateString('id-ID', options);
+        estimasiDiv.style.display = 'block';
+    } else {
+        estimasiDiv.style.display = 'none';
+    }
+}
+
+function updateEstimasiEOQ() {
+    const select = document.getElementById('eoq_supplier_id');
+    const estimasiDiv = document.getElementById('estimasi_kedatangan_eoq');
+    const estimasiTanggal = document.getElementById('estimasi_tanggal_eoq');
+    
+    if (!select || !estimasiDiv || !estimasiTanggal) return;
+    
+    const selectedOption = select.options[select.selectedIndex];
+    const leadTime = parseInt(selectedOption.getAttribute('data-lead-time')) || 0;
+    
+    if (leadTime > 0 && select.value) {
+        const today = new Date();
+        const estimatedDate = new Date(today);
+        estimatedDate.setDate(estimatedDate.getDate() + leadTime);
+        
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        estimasiTanggal.textContent = estimatedDate.toLocaleDateString('id-ID', options);
+        estimasiDiv.style.display = 'block';
+    } else {
+        estimasiDiv.style.display = 'none';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {

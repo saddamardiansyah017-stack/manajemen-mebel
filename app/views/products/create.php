@@ -36,18 +36,27 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Supplier</label>
-                        <small class="text-muted text-sm d-block mb-2">Pilih supplier yang menyuplai produk ini. Tandai 1 sebagai supplier utama.</small>
+                        <small class="text-muted text-sm d-block mb-2">Pilih satu atau lebih supplier yang menyuplai produk ini</small>
                         <?php if (!empty($data['suppliers'])): ?>
-                            <?php foreach ($data['suppliers'] as $supplier): ?>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <input type="checkbox" name="supplier_ids[]" value="<?= $supplier['id']; ?>" id="supplier_<?= $supplier['id']; ?>">
-                                <label for="supplier_<?= $supplier['id']; ?>" style="margin:0; cursor:pointer;"><?= htmlspecialchars($supplier['name']); ?> <span class="text-muted text-sm">(LT: <?= $supplier['default_lead_time']; ?> hari)</span></label>
-                                <input type="radio" name="primary_supplier_id" value="<?= $supplier['id']; ?>" title="Supplier Utama">
-                                <small class="text-muted">utama</small>
+                            <div class="supplier-checkbox-list">
+                                <?php foreach ($data['suppliers'] as $supplier): ?>
+                                    <label class="supplier-checkbox-item">
+                                        <input type="checkbox" name="supplier_ids[]" value="<?= $supplier['id']; ?>" class="supplier-checkbox-input" data-name="<?= htmlspecialchars($supplier['name']); ?>" data-lead-time="<?= $supplier['default_lead_time']; ?>">
+                                        <span class="supplier-checkbox-label"><?= htmlspecialchars($supplier['name']); ?></span>
+                                        <span class="supplier-checkbox-meta">Lead Time: <?= $supplier['default_lead_time']; ?> hari</span>
+                                    </label>
+                                <?php endforeach; ?>
                             </div>
-                            <?php endforeach; ?>
+                            
+                            <div id="primary_supplier_container" class="mt-3" style="display: none;">
+                                <label class="form-label">Supplier Utama</label>
+                                <select id="primary_supplier_select" name="primary_supplier_id" class="form-select">
+                                    <option value="">-- Pilih Supplier Utama --</option>
+                                </select>
+                                <small class="text-muted text-sm d-block mt-1">Pilih salah satu supplier sebagai supplier utama</small>
+                            </div>
                         <?php else: ?>
-                            <p class="text-muted text-sm">Belum ada supplier. Tambahkan supplier terlebih dahulu.</p>
+                            <p class="text-muted text-sm">Belum ada supplier. <a href="<?= BASEURL; ?>/suppliers/create">Tambahkan supplier</a> terlebih dahulu.</p>
                         <?php endif; ?>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block mt-4">Simpan Produk</button>
@@ -56,3 +65,35 @@
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    const checkboxes = document.querySelectorAll('.supplier-checkbox-input');
+    const primaryContainer = document.getElementById('primary_supplier_container');
+    const primarySelect = document.getElementById('primary_supplier_select');
+    
+    if (!checkboxes.length) return;
+    
+    function updatePrimaryDropdown() {
+        const checked = Array.from(checkboxes).filter(cb => cb.checked);
+        
+        if (checked.length === 0) {
+            primaryContainer.style.display = 'none';
+            return;
+        }
+        
+        primaryContainer.style.display = 'block';
+        
+        const currentPrimary = primarySelect.value;
+        primarySelect.innerHTML = '<option value="">-- Pilih Supplier Utama --</option>' + 
+            checked.map(cb => {
+                const selected = cb.value === currentPrimary ? 'selected' : '';
+                return `<option value="${cb.value}" ${selected}>${cb.dataset.name}</option>`;
+            }).join('');
+    }
+    
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updatePrimaryDropdown);
+    });
+})();
+</script>

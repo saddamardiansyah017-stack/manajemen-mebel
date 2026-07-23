@@ -135,4 +135,82 @@ class Order {
         ');
         return $this->db->resultSet();
     }
+
+    // ===== Period-based Methods untuk Filter Laporan =====
+
+    public function getOrdersByPeriod($product_id, $from, $to) {
+        $this->db->query('
+            SELECT o.*, u.username AS ordered_by_name, s.name AS supplier_name
+            FROM orders o
+            LEFT JOIN users u ON o.ordered_by = u.id
+            LEFT JOIN suppliers s ON o.supplier_id = s.id
+            WHERE o.product_id = :product_id
+            AND o.date >= :from
+            AND o.date <= :to
+            ORDER BY o.date DESC
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+        return $this->db->resultSet();
+    }
+
+    public function getTotalOrdersByPeriod($product_id, $from, $to) {
+        $this->db->query('
+            SELECT SUM(order_quantity) as total_quantity, SUM(amount) as total_amount
+            FROM orders
+            WHERE product_id = :product_id
+            AND date >= :from
+            AND date <= :to
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+        $result = $this->db->single();
+        return [
+            'quantity' => $result['total_quantity'] ? (int) $result['total_quantity'] : 0,
+            'amount' => $result['total_amount'] ? (float) $result['total_amount'] : 0,
+        ];
+    }
+
+    public function getAllOrdersSummaryByPeriod($from, $to) {
+        $this->db->query('
+            SELECT 
+                COUNT(DISTINCT product_id) as total_products,
+                SUM(order_quantity) as total_quantity,
+                SUM(amount) as total_amount
+            FROM orders
+            WHERE date >= :from
+            AND date <= :to
+        ');
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+        $result = $this->db->single();
+        return [
+            'total_products' => (int) ($result['total_products'] ?? 0),
+            'total_quantity' => (int) ($result['total_quantity'] ?? 0),
+            'total_amount' => (float) ($result['total_amount'] ?? 0),
+        ];
+    }
+
+    public function getLateOrders() {
+        $this->db->query('
+            SELECT 
+                o.*,
+                p.name AS product_name,
+                p.unit AS product_unit,
+                s.name AS supplier_name,
+                s.default_lead_time,
+                DATEDIFF(NOW(), o.date) AS days_since_order,
+                DATEDIFF(NOW(), o.date) - s.default_lead_time AS days_late
+            FROM orders o
+            LEFT JOIN products p ON o.product_id = p.id
+            LEFT JOIN suppliers s ON o.supplier_id = s.id
+            WHERE o.received_date IS NULL
+            AND DATEDIFF(NOW(), o.date) > s.default_lead_time
+            ORDER BY days_late DESC
+            LIMIT 10
+        ');
+        return $this->db->resultSet();
+    }
 }

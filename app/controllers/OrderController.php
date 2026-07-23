@@ -156,6 +156,20 @@ class OrderController extends Controller {
                         $data['error'] = 'Pesanan tidak ditemukan.';
                     }
                 }
+            } elseif ($action === 'delete_sale') {
+                // --- Hapus Penjualan ---
+                $sale_id = (int) $_POST['sale_id'];
+                $sale = $saleModel->getSaleById($sale_id);
+                if ($sale && $sale['product_id'] == $product_id) {
+                    if ($saleModel->deleteSale($sale_id)) {
+                        $saleModel->incrementProductStock($product_id, $sale['quantity']);
+                        $this->redirect('/products/' . $product_id . '/orders?success=delete_sale');
+                    } else {
+                        $data['error'] = 'Gagal menghapus penjualan.';
+                    }
+                } else {
+                    $data['error'] = 'Penjualan tidak ditemukan.';
+                }
             }
 
             // Refresh data setelah POST gagal
@@ -169,6 +183,7 @@ class OrderController extends Controller {
             if ($_GET['success'] === 'order') $data['success'] = 'Stok berhasil ditambahkan.';
             if ($_GET['success'] === 'sale')  $data['success'] = 'Penjualan berhasil dicatat, stok dikurangi.';
             if ($_GET['success'] === 'delete') $data['success'] = 'Pesanan berhasil dihapus, stok dikembalikan.';
+            if ($_GET['success'] === 'delete_sale') $data['success'] = 'Penjualan berhasil dihapus, stok dikembalikan.';
             if ($_GET['success'] === 'receive') $data['success'] = 'Tanggal penerimaan berhasil disimpan.';
         }
 
