@@ -23,6 +23,11 @@
                         <input type="email" name="email" id="email" class="form-control" autocomplete="off">
                     </div>
                     <div class="form-group">
+                        <label for="default_lead_time" class="form-label">Estimasi Waktu Pengiriman (hari)</label>
+                        <input type="number" name="default_lead_time" id="default_lead_time" class="form-control" value="7" min="1" max="90" required>
+                        <small class="text-muted text-sm">Rata-rata hari dari pesan sampai barang diterima</small>
+                    </div>
+                    <div class="form-group">
                         <label for="address" class="form-label">Alamat</label>
                         <textarea name="address" id="address" class="form-control" rows="3" required></textarea>
                     </div>

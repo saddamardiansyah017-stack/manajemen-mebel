@@ -24,16 +24,20 @@
                     <tr>
                         <th>Nama Produk</th>
                         <th>Stok Saat Ini</th>
-                        <th>Permintaan (12 Bln)</th>
+                        <th>Permintaan Tahunan (D)</th>
                         <th>Biaya Pesan (S)</th>
                         <th>Biaya Simpan (H)</th>
                         <th>EOQ</th>
+                        <th>Lead Time</th>
+                        <th>Safety Stock</th>
+                        <th>ROP</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($data['eoq_products'])): ?>
                     <tr>
-                        <td colspan="6" class="text-center text-muted">Tidak ada produk dengan rekomendasi EOQ.</td>
+                        <td colspan="10" class="text-center text-muted">Tidak ada produk dengan rekomendasi EOQ.</td>
                     </tr>
                     <?php else: ?>
                         <?php foreach($data['eoq_products'] as $p): ?>
@@ -44,11 +48,34 @@
                                 </a>
                             </td>
                             <td><?= number_format($p['stock']); ?> <?= htmlspecialchars($p['unit']); ?></td>
-                            <td><?= number_format($p['demand']); ?> <?= htmlspecialchars($p['unit']); ?></td>
+                            <td>
+                                <?= number_format($p['demand']); ?> <?= htmlspecialchars($p['unit']); ?>
+                                <?php if (isset($p['data_months']) && $p['data_months'] < 12): ?>
+                                    <br><span class="text-muted" style="font-size:0.7rem;">proyeksi (data <?= $p['data_months']; ?> bln)</span>
+                                <?php endif; ?>
+                            </td>
                             <td>Rp <?= number_format($p['ordering_cost'], 0, ',', '.'); ?></td>
                             <td>Rp <?= number_format($p['holding_cost'], 0, ',', '.'); ?></td>
-                            <td class="fw-bold text-lg" style="color: #10b981;">
-                                <?= number_format($p['eoq']); ?> <?= htmlspecialchars($p['unit']); ?>
+                            <td class="fw-bold" style="color: #10b981;">
+                                <?= $p['eoq'] > 0 ? number_format($p['eoq']) . ' ' . htmlspecialchars($p['unit']) : '-'; ?>
+                            </td>
+                            <td>
+                                <?= $p['lead_time'] > 0 ? $p['lead_time'] . ' hari' : '<span class="text-muted">N/A</span>'; ?>
+                            </td>
+                            <td>
+                                <?= $p['safety_stock'] > 0 ? number_format($p['safety_stock']) . ' ' . htmlspecialchars($p['unit']) : '0'; ?>
+                            </td>
+                            <td>
+                                <?= $p['rop'] > 0 ? number_format($p['rop']) . ' ' . htmlspecialchars($p['unit']) : '0'; ?>
+                            </td>
+                            <td>
+                                <?php if ($p['rop_status'] === 'reorder'): ?>
+                                    <span class="badge bg-danger">Perlu Reorder</span>
+                                <?php elseif ($p['rop_status'] === 'aman'): ?>
+                                    <span class="badge bg-success">Aman</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Data belum cukup</span>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>

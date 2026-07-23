@@ -47,6 +47,10 @@
                         <th>Biaya Pesan (S)</th>
                         <th>Biaya Simpan (H)</th>
                         <th>Rekomendasi EOQ</th>
+                        <th>Lead Time</th>
+                        <th>Safety Stock</th>
+                        <th>ROP</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,7 +61,7 @@
                     ?>
                     <?php if (empty($filteredReports)): ?>
                     <tr>
-                        <td colspan="6" class="text-center text-muted">Tidak ada data laporan dengan rekomendasi EOQ.</td>
+                        <td colspan="10" class="text-center text-muted">Tidak ada data laporan dengan rekomendasi EOQ.</td>
                     </tr>
                     <?php else: ?>
                         <?php foreach($filteredReports as $report): ?>
@@ -69,6 +73,24 @@
                             <td>Rp <?= number_format($report['holding_cost'], 0, ',', '.'); ?></td>
                             <td class="fw-bold" style="color: #10b981;">
                                 <?= number_format($report['eoq'], 0, ',', '.') . ' ' . htmlspecialchars($report['unit']); ?>
+                            </td>
+                            <td>
+                                <?= $report['lead_time'] > 0 ? $report['lead_time'] . ' hari' : '<span class="text-muted">N/A</span>'; ?>
+                            </td>
+                            <td>
+                                <?= $report['safety_stock'] > 0 ? number_format($report['safety_stock']) . ' ' . htmlspecialchars($report['unit']) : '0'; ?>
+                            </td>
+                            <td>
+                                <?= $report['rop'] > 0 ? number_format($report['rop']) . ' ' . htmlspecialchars($report['unit']) : '0'; ?>
+                            </td>
+                            <td>
+                                <?php if ($report['rop_status'] === 'reorder'): ?>
+                                    <span class="badge bg-danger">Perlu Reorder</span>
+                                <?php elseif ($report['rop_status'] === 'aman'): ?>
+                                    <span class="badge bg-success">Aman</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Data belum cukup</span>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>

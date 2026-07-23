@@ -20,30 +20,48 @@ class OrderController extends Controller {
         $supplierModel = $this->model('Supplier');
         $orderModel    = $this->model('Order');
         $saleModel     = $this->model('Sale');
+        $psModel       = $this->model('ProductSupplier');
 
         $product = $productModel->getProductById($product_id);
         if (!$product) {
             $this->redirect('/products');
         }
 
-        $demand        = $saleModel->getTotalDemand($product_id, 12);
+        // Ambil supplier terkait produk, fallback ke semua supplier
+        $productSuppliers = $psModel->getSuppliersByProduct($product_id);
+        $suppliers = !empty($productSuppliers) ? $productSuppliers : $supplierModel->getAllSuppliers();
+
+        $demandData    = $saleModel->getAnnualizedDemand($product_id);
+        $demand        = $demandData['annualized_demand'];
         $ordering_cost = (float) $product['ordering_cost'];
         $holding_cost  = (float) $product['holding_cost'];
-        
-        $eoq = 0;
-        if ($holding_cost > 0 && $ordering_cost > 0 && $demand > 0) {
-            $eoq = ceil(sqrt((2 * $demand * $ordering_cost) / $holding_cost));
-        }
+        $leadTime      = $orderModel->getAverageLeadTime($product_id);
+        $demandStats   = $saleModel->getDailyDemandStats($product_id);
+
+        $metrics = InventoryCalculator::calculateAll([
+            'demand'        => $demand,
+            'ordering_cost' => $ordering_cost,
+            'holding_cost'  => $holding_cost,
+            'max_daily'     => $demandStats['max_daily'],
+            'avg_daily'     => $demandStats['avg_daily'],
+            'lead_time'     => $leadTime,
+            'stock'         => (int) $product['stock'],
+        ]);
 
         $data = [
             'product'       => $product,
             'orders'        => $orderModel->getOrdersByProduct($product_id),
             'sales'         => $saleModel->getSalesByProduct($product_id),
-            'suppliers'     => $supplierModel->getAllSuppliers(),
+            'suppliers'     => $suppliers,
             'demand'        => $demand,
+            'data_months'   => $demandData['data_months'],
             'ordering_cost' => $ordering_cost,
             'holding_cost'  => $holding_cost,
-            'eoq'           => $eoq,
+            'eoq'           => $metrics['eoq'],
+            'lead_time'     => $leadTime,
+            'safety_stock'  => $metrics['safety_stock'],
+            'rop'           => $metrics['rop'],
+            'rop_status'    => $metrics['rop_status'],
             'error'         => '',
             'success'       => '',
         ];
@@ -55,6 +73,7 @@ class OrderController extends Controller {
                 // --- Tambah Stok ---
                 $order_quantity = (int) $_POST['order_quantity'];
                 $supplier_id    = (int) $_POST['supplier_id'];
+                $received_date  = !empty($_POST['received_date']) ? $_POST['received_date'] : null;
 
                 if ($order_quantity <= 0) {
                     $data['error'] = 'Kuantitas order harus lebih dari 0.';
@@ -63,7 +82,8 @@ class OrderController extends Controller {
                 } else {
                     $amount    = $order_quantity * $product['price'];
                     $orderData = [
-                        'date'           => date('Y-m-d H:i:s'),
+                        'date'           => date('Y-m-d'),
+                        'received_date'  => $received_date,
                         'order_quantity' => $order_quantity,
                         'amount'         => $amount,
                         'ordered_by'     => $_SESSION['user_id'],
@@ -117,6 +137,25 @@ class OrderController extends Controller {
                 } else {
                     $data['error'] = 'Pesanan tidak ditemukan.';
                 }
+            } elseif ($action === 'receive_order') {
+                // --- Tandai Barang Diterima ---
+                $order_id      = (int) $_POST['order_id'];
+                $received_date = $_POST['received_date'] ?? '';
+
+                if (empty($received_date)) {
+                    $data['error'] = 'Tanggal penerimaan harus diisi.';
+                } else {
+                    $order = $orderModel->getOrderById($order_id);
+                    if ($order && $order['product_id'] == $product_id) {
+                        if ($orderModel->updateReceivedDate($order_id, $received_date)) {
+                            $this->redirect('/products/' . $product_id . '/orders?success=receive');
+                        } else {
+                            $data['error'] = 'Gagal mengupdate tanggal penerimaan.';
+                        }
+                    } else {
+                        $data['error'] = 'Pesanan tidak ditemukan.';
+                    }
+                }
             }
 
             // Refresh data setelah POST gagal
@@ -130,6 +169,7 @@ class OrderController extends Controller {
             if ($_GET['success'] === 'order') $data['success'] = 'Stok berhasil ditambahkan.';
             if ($_GET['success'] === 'sale')  $data['success'] = 'Penjualan berhasil dicatat, stok dikurangi.';
             if ($_GET['success'] === 'delete') $data['success'] = 'Pesanan berhasil dihapus, stok dikembalikan.';
+            if ($_GET['success'] === 'receive') $data['success'] = 'Tanggal penerimaan berhasil disimpan.';
         }
 
         $this->view('orders/index', $data);

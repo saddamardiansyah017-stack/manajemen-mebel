@@ -18,26 +18,34 @@ class Supplier {
     }
 
     public function addSupplier($data) {
-        $this->db->query('INSERT INTO suppliers (name, address, phone, email, created_at, updated_at) VALUES (:name, :address, :phone, :email, NOW(), NOW())');
+        $this->db->query('INSERT INTO suppliers (name, address, phone, email, default_lead_time, created_at, updated_at) VALUES (:name, :address, :phone, :email, :default_lead_time, NOW(), NOW())');
         $this->db->bind(':name', $data['name']);
         $this->db->bind(':address', $data['address']);
         $this->db->bind(':phone', $data['phone']);
         $this->db->bind(':email', $data['email']);
+        $this->db->bind(':default_lead_time', $data['default_lead_time'] ?? 7);
 
         $this->db->execute();
         return $this->db->rowCount();
     }
 
     public function updateSupplier($data) {
-        $this->db->query('UPDATE suppliers SET name = :name, address = :address, phone = :phone, email = :email, updated_at = NOW() WHERE id = :id');
+        $this->db->query('UPDATE suppliers SET name = :name, address = :address, phone = :phone, email = :email, default_lead_time = :default_lead_time, updated_at = NOW() WHERE id = :id');
         $this->db->bind(':name', $data['name']);
         $this->db->bind(':address', $data['address']);
         $this->db->bind(':phone', $data['phone']);
         $this->db->bind(':email', $data['email']);
+        $this->db->bind(':default_lead_time', $data['default_lead_time'] ?? 7);
         $this->db->bind(':id', $data['id']);
 
         $this->db->execute();
         return $this->db->rowCount();
+    }
+
+    public function countSuppliers() {
+        $this->db->query('SELECT COUNT(*) as total FROM suppliers');
+        $result = $this->db->single();
+        return (int) $result['total'];
     }
 
     public function deleteSupplier($id) {

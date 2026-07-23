@@ -51,4 +51,14 @@ class Product {
         $this->db->execute();
         return $this->db->rowCount();
     }
+
+    public function countProducts() {
+        $this->db->query('SELECT COUNT(*) as total FROM products');
+        $result = $this->db->single();
+        return (int) $result['total'];
+    }
+
+    public function getLastInsertId() {
+        return $this->db->lastInsertId();
+    }
 }

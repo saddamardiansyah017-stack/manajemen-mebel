@@ -1,4 +1,3 @@
-CREATE DATABASE IF NOT EXISTS eoq_mebel;
 USE eoq_mebel;
 
 CREATE TABLE IF NOT EXISTS `users` (

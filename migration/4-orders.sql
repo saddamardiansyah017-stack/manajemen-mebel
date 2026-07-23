@@ -2,7 +2,8 @@ USE eoq_mebel;
 
 CREATE TABLE IF NOT EXISTS `orders` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `date` datetime NOT NULL,
+  `date` date NOT NULL,
+  `received_date` date DEFAULT NULL COMMENT 'Tanggal barang diterima dari supplier',
   `order_quantity` int(11) NOT NULL,
   `amount` decimal(15,2) NOT NULL,
   `ordered_by` int(11) NOT NULL,

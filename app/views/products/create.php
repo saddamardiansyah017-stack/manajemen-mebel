@@ -34,6 +34,22 @@
                         <label for="holding_cost" class="form-label">Biaya Penyimpanan per Unit per Tahun (H)</label>
                         <input type="number" name="holding_cost" id="holding_cost" class="form-control" value="0" required>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Supplier</label>
+                        <small class="text-muted text-sm d-block mb-2">Pilih supplier yang menyuplai produk ini. Tandai 1 sebagai supplier utama.</small>
+                        <?php if (!empty($data['suppliers'])): ?>
+                            <?php foreach ($data['suppliers'] as $supplier): ?>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <input type="checkbox" name="supplier_ids[]" value="<?= $supplier['id']; ?>" id="supplier_<?= $supplier['id']; ?>">
+                                <label for="supplier_<?= $supplier['id']; ?>" style="margin:0; cursor:pointer;"><?= htmlspecialchars($supplier['name']); ?> <span class="text-muted text-sm">(LT: <?= $supplier['default_lead_time']; ?> hari)</span></label>
+                                <input type="radio" name="primary_supplier_id" value="<?= $supplier['id']; ?>" title="Supplier Utama">
+                                <small class="text-muted">utama</small>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p class="text-muted text-sm">Belum ada supplier. Tambahkan supplier terlebih dahulu.</p>
+                        <?php endif; ?>
+                    </div>
                     <button type="submit" class="btn btn-primary btn-block mt-4">Simpan Produk</button>
                 </form>
             </div>

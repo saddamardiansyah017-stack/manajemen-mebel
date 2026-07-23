@@ -40,10 +40,12 @@
                 <h3 class="fw-bold mb-3" style="color: #10b981; font-size: 1.1rem;">📊 Rekomendasi Pemesanan (EOQ)</h3>
                 <?php if ($data['ordering_cost'] == 0 || $data['holding_cost'] == 0): ?>
                     <p class="text-muted text-sm mb-0">Parameter EOQ belum lengkap. Silakan isi Biaya Pemesanan (S) dan Biaya Penyimpanan (H) pada halaman <a href="<?= BASEURL; ?>/products/edit/<?= $data['product']['id']; ?>" style="color: #10b981; text-decoration: underline;">Ubah Produk</a>.</p>
+                <?php elseif ($data['demand'] == 0): ?>
+                    <p class="text-muted text-sm mb-0">Belum ada data penjualan untuk produk ini. Tambahkan penjualan terlebih dahulu.</p>
                 <?php else: ?>
                     <div class="d-flex flex-wrap" style="gap: 2rem;">
                         <div>
-                            <p class="text-sm text-muted mb-1">Permintaan Tahunan (D)</p>
+                            <p class="text-sm text-muted mb-1">Permintaan Tahunan (D) <?php if ($data['data_months'] < 12): ?><span style="color:#f59e0b; font-size:0.7rem;">proyeksi</span><?php endif; ?></p>
                             <p class="fw-bold text-lg"><?= number_format($data['demand']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
                         </div>
                         <div>
@@ -70,6 +72,44 @@
             </div>
         </div>
 
+        <!-- Panel ROP & Safety Stock -->
+        <div class="card mb-4" style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2);">
+            <div class="card-body">
+                <h3 class="fw-bold mb-3" style="color: #3b82f6; font-size: 1.1rem;">🛡️ Reorder Point & Safety Stock</h3>
+                <?php if ($data['lead_time'] <= 0 || $data['demand'] <= 0): ?>
+                    <p class="text-muted text-sm mb-0">Data belum cukup untuk menghitung ROP. Diperlukan minimal data penjualan dan pesanan yang sudah diterima untuk menghitung Lead Time.</p>
+                <?php else: ?>
+                    <div class="d-flex flex-wrap" style="gap: 2rem;">
+                        <div>
+                            <p class="text-sm text-muted mb-1">Lead Time Rata-rata</p>
+                            <p class="fw-bold text-lg"><?= $data['lead_time']; ?> hari</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted mb-1">Safety Stock (SS)</p>
+                            <p class="fw-bold text-lg"><?= number_format($data['safety_stock']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                        </div>
+                        <div style="border-left: 2px solid rgba(59, 130, 246, 0.3); padding-left: 2rem;">
+                            <p class="text-sm text-muted mb-1">Reorder Point (ROP)</p>
+                            <p class="fw-bold text-2xl" style="color: #3b82f6;"><?= number_format($data['rop']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted mb-1">Status</p>
+                            <?php if ($data['rop_status'] === 'reorder'): ?>
+                                <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600;">⚠️ Perlu Reorder</span>
+                            <?php else: ?>
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600;">✓ Stok Aman</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                <?php if ($data['data_months'] > 0 && $data['data_months'] < 3): ?>
+                    <div class="mt-2" style="padding: 0.5rem 0.75rem; background: rgba(245, 158, 11, 0.1); border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                        <p class="text-sm mb-0" style="color: #f59e0b;">⚠️ Data penjualan baru <?= $data['data_months']; ?> bulan — hasil kalkulasi merupakan estimasi. Akurasi meningkat seiring bertambahnya data.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
         <!-- Tabel Riwayat Stok Gabungan -->
         <h3 class="fw-bold mb-2" style="font-size:1rem;">Riwayat Stok</h3>
         <div class="table-responsive">
@@ -79,6 +119,7 @@
                         <th>#</th>
                         <th>Tipe</th>
                         <th>Tanggal</th>
+                        <th>Diterima</th>
                         <th>Kuantitas</th>
                         <th>Total</th>
                         <th>Keterangan</th>
@@ -91,12 +132,13 @@
                     $history = [];
                     foreach ($data['orders'] as $o) {
                         $history[] = [
-                            'type'       => 'order',
-                            'id'         => $o['id'],
-                            'date'       => $o['date'],
-                            'quantity'   => $o['order_quantity'],
-                            'amount'     => $o['amount'],
-                            'keterangan' => 'Pemasok: ' . htmlspecialchars($o['supplier_name']) . ' &nbsp;|&nbsp; Oleh: ' . htmlspecialchars($o['ordered_by_name']),
+                            'type'          => 'order',
+                            'id'            => $o['id'],
+                            'date'          => $o['date'],
+                            'received_date' => $o['received_date'] ?? null,
+                            'quantity'      => $o['order_quantity'],
+                            'amount'        => $o['amount'],
+                            'keterangan'    => 'Pemasok: ' . htmlspecialchars($o['supplier_name']) . ' &nbsp;|&nbsp; Oleh: ' . htmlspecialchars($o['ordered_by_name']),
                         ];
                     }
                     foreach ($data['sales'] as $s) {
@@ -113,7 +155,7 @@
                     ?>
                     <?php if (empty($history)): ?>
                         <tr>
-                            <td colspan="7" class="text-center text-muted">Belum ada riwayat stok.</td>
+                            <td colspan="8" class="text-center text-muted">Belum ada riwayat stok.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($history as $i => $row): ?>
@@ -127,6 +169,26 @@
                                     <?php endif; ?>
                                 </td>
                                 <td><?= date('d M Y H:i', strtotime($row['date'])); ?></td>
+                                <td>
+                                    <?php if ($row['type'] === 'order'): ?>
+                                        <?php if (!empty($row['received_date'])): ?>
+                                            <span class="text-success"><?= date('d M Y', strtotime($row['received_date'])); ?></span>
+                                        <?php else: ?>
+                                            <?php if($_SESSION['role'] !== 'owner'): ?>
+                                            <form action="<?= BASEURL; ?>/products/<?= $data['product']['id']; ?>/orders" method="POST" style="display:inline-flex; gap:0.25rem; align-items:center;">
+                                                <input type="hidden" name="action" value="receive_order">
+                                                <input type="hidden" name="order_id" value="<?= $row['id']; ?>">
+                                                <input type="date" name="received_date" required class="form-control" style="padding:0.2rem 0.4rem; font-size:0.75rem; width:auto;">
+                                                <button type="submit" class="btn btn-sm" style="padding:0.2rem 0.5rem; background:#10b981; color:#fff; font-size:0.7rem;" title="Tandai Diterima">✓</button>
+                                            </form>
+                                            <?php else: ?>
+                                            <span class="text-muted">Belum diterima</span>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?= number_format($row['quantity']); ?> <?= htmlspecialchars($data['product']['unit']); ?></td>
                                 <td>Rp <?= number_format($row['amount'], 0, ',', '.'); ?></td>
                                 <td class="text-muted text-sm"><?= $row['keterangan']; ?></td>
@@ -178,6 +240,10 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="received_date" class="form-label">Tanggal Diterima <span class="text-muted">(opsional)</span></label>
+                    <input type="date" name="received_date" id="received_date" class="form-control" placeholder="Kosongkan jika belum diterima">
+                </div>
+                <div class="form-group">
                     <label class="form-label">Total Keseluruhan</label>
                     <div id="order-amount-display" class="form-control" style="cursor:default;">Rp 0</div>
                 </div>
@@ -213,6 +279,10 @@
                             </option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="eoq_received_date" class="form-label">Tanggal Diterima <span class="text-muted">(opsional)</span></label>
+                    <input type="date" name="received_date" id="eoq_received_date" class="form-control" placeholder="Kosongkan jika belum diterima">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Total Keseluruhan</label>

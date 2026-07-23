@@ -19,16 +19,33 @@ class EoqController extends Controller {
         $productsRaw = $productModel->getAllProducts();
         $eoqProducts = [];
         foreach ($productsRaw as $product) {
-            $demand        = $saleModel->getTotalDemand($product['id'], 12);
+            $demandData    = $saleModel->getAnnualizedDemand($product['id']);
+            $demand        = $demandData['annualized_demand'];
             $ordering_cost = (float) $product['ordering_cost'];
             $holding_cost  = (float) $product['holding_cost'];
-            
-            $eoq = 0;
-            if ($holding_cost > 0 && $ordering_cost > 0 && $demand > 0) {
-                $eoq = ceil(sqrt((2 * $demand * $ordering_cost) / $holding_cost));
-                $product['demand'] = $demand;
-                $product['eoq']    = $eoq;
-                $eoqProducts[]     = $product;
+            $leadTime      = $orderModel->getAverageLeadTime($product['id']);
+            $demandStats   = $saleModel->getDailyDemandStats($product['id']);
+
+            $metrics = InventoryCalculator::calculateAll([
+                'demand'        => $demand,
+                'ordering_cost' => $ordering_cost,
+                'holding_cost'  => $holding_cost,
+                'max_daily'     => $demandStats['max_daily'],
+                'avg_daily'     => $demandStats['avg_daily'],
+                'lead_time'     => $leadTime,
+                'stock'         => (int) $product['stock'],
+            ]);
+
+            $product['demand']       = $demand;
+            $product['data_months']  = $demandData['data_months'];
+            $product['eoq']          = $metrics['eoq'];
+            $product['lead_time']    = $leadTime;
+            $product['safety_stock'] = $metrics['safety_stock'];
+            $product['rop']          = $metrics['rop'];
+            $product['rop_status']   = $metrics['rop_status'];
+
+            if ($metrics['eoq'] > 0 || $demand > 0) {
+                $eoqProducts[] = $product;
             }
         }
 
@@ -96,26 +113,25 @@ class EoqController extends Controller {
             $successCount = 0;
 
             foreach ($productsRaw as $product) {
-                $demand        = $saleModel->getTotalDemand($product['id'], 12);
+                $demandData    = $saleModel->getAnnualizedDemand($product['id']);
+                $demand        = $demandData['annualized_demand'];
                 $ordering_cost = (float) $product['ordering_cost'];
                 $holding_cost  = (float) $product['holding_cost'];
                 
-                if ($holding_cost > 0 && $ordering_cost > 0 && $demand > 0) {
-                    $eoq = ceil(sqrt((2 * $demand * $ordering_cost) / $holding_cost));
-                    if ($eoq > 0) {
-                        $amount = $eoq * $product['price'];
-                        $orderData = [
-                            'date'           => date('Y-m-d H:i:s'),
-                            'order_quantity' => $eoq,
-                            'amount'         => $amount,
-                            'ordered_by'     => $_SESSION['user_id'],
-                            'supplier_id'    => $supplier_id,
-                            'product_id'     => $product['id'],
-                        ];
-                        if ($orderModel->addOrder($orderData) > 0) {
-                            $orderModel->updateProductStock($product['id'], $eoq);
-                            $successCount++;
-                        }
+                $eoq = InventoryCalculator::calculateEOQ($demand, $ordering_cost, $holding_cost);
+                if ($eoq > 0) {
+                    $amount = $eoq * $product['price'];
+                    $orderData = [
+                        'date'           => date('Y-m-d H:i:s'),
+                        'order_quantity' => $eoq,
+                        'amount'         => $amount,
+                        'ordered_by'     => $_SESSION['user_id'],
+                        'supplier_id'    => $supplier_id,
+                        'product_id'     => $product['id'],
+                    ];
+                    if ($orderModel->addOrder($orderData) > 0) {
+                        $orderModel->updateProductStock($product['id'], $eoq);
+                        $successCount++;
                     }
                 }
             }

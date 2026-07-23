@@ -1,13 +1,13 @@
 USE eoq_mebel;
 
 -- Insert Data Supplier
-INSERT INTO `suppliers` (`name`, `address`, `phone`, `email`, `created_at`, `updated_at`) VALUES
-('PT. Semen Nusantara', 'Jl. Industri No. 1, Jakarta', '081111111111', 'sales@semennusantara.com', NOW(), NOW()),
-('CV. Baja Ringan Jaya', 'Jl. Logam No. 2, Surabaya', '082222222222', 'info@bajaringanjaya.co.id', NOW(), NOW()),
-('UD. Pasir Merapi', 'Jl. Gunung No. 3, Magelang', '083333333333', 'kontak@pasirmerapi.com', NOW(), NOW()),
-('PT. Cat Warna Abadi', 'Jl. Pelangi No. 4, Bandung', '084444444444', 'sales@warnabadi.com', NOW(), NOW()),
-('CV. Keramik Sentosa', 'Jl. Tanah Liat No. 5, Semarang', '085555555555', 'admin@keramiksentosa.com', NOW(), NOW()),
-('Toko Besi Makmur', 'Jl. Pandai Besi No. 6, Medan', '086666666666', 'makmur.besi@gmail.com', NOW(), NOW());
+INSERT INTO `suppliers` (`name`, `address`, `phone`, `email`, `default_lead_time`, `created_at`, `updated_at`) VALUES
+('PT. Semen Nusantara', 'Jl. Industri No. 1, Jakarta', '081111111111', 'sales@semennusantara.com', 5, NOW(), NOW()),
+('CV. Baja Ringan Jaya', 'Jl. Logam No. 2, Surabaya', '082222222222', 'info@bajaringanjaya.co.id', 4, NOW(), NOW()),
+('UD. Pasir Merapi', 'Jl. Gunung No. 3, Magelang', '083333333333', 'kontak@pasirmerapi.com', 3, NOW(), NOW()),
+('PT. Cat Warna Abadi', 'Jl. Pelangi No. 4, Bandung', '084444444444', 'sales@warnabadi.com', 6, NOW(), NOW()),
+('CV. Keramik Sentosa', 'Jl. Tanah Liat No. 5, Semarang', '085555555555', 'admin@keramiksentosa.com', 7, NOW(), NOW()),
+('Toko Besi Makmur', 'Jl. Pandai Besi No. 6, Medan', '086666666666', 'makmur.besi@gmail.com', 4, NOW(), NOW());
 
 -- Insert Data Products
 INSERT INTO `products` (`name`, `unit`, `price`, `stock`, `ordering_cost`, `holding_cost`, `created_at`, `updated_at`) VALUES
