@@ -1,3 +1,14 @@
+<?php
+// Helper function untuk format angka: hilangkan desimal ,00 tapi tetap tampilkan desimal seperti 4,5
+function format_smart($number) {
+    // Jika angka adalah integer atau desimalnya ,00
+    if (floor($number) == $number) {
+        return number_format($number, 0, ',', '.');
+    }
+    // Jika ada desimal, tampilkan dengan 1 atau 2 digit
+    return rtrim(rtrim(number_format($number, 2, ',', '.'), '0'), ',');
+}
+?>
 <div class="card mb-4">
     <div class="card-header">
         <div>
@@ -42,11 +53,20 @@
                     <p class="text-muted text-sm mb-0">Parameter EOQ belum lengkap. Silakan isi Biaya Pemesanan (S) dan Biaya Penyimpanan (H) pada halaman <a href="<?= BASEURL; ?>/products/edit/<?= $data['product']['id']; ?>" style="color: #10b981; text-decoration: underline;">Ubah Produk</a>.</p>
                 <?php elseif ($data['demand'] == 0): ?>
                     <p class="text-muted text-sm mb-0">Belum ada data penjualan untuk produk ini. Tambahkan penjualan terlebih dahulu.</p>
+                <?php elseif ($data['data_months'] < 1): ?>
+                    <div style="padding: 1rem; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                        <p class="text-sm mb-2" style="color: #f59e0b; font-weight: 600;">⚠️ Data Penjualan Belum Cukup</p>
+                        <p class="text-sm text-muted mb-2">Saat ini baru tersedia <strong><?= number_format($data['data_months'], 1); ?> bulan</strong> data penjualan. Rekomendasi EOQ memerlukan minimal <strong>1 bulan</strong> data untuk hasil yang lebih akurat.</p>
+                        <p class="text-sm text-muted mb-0">Silakan tambahkan lebih banyak transaksi penjualan atau tunggu hingga data terkumpul lebih lama.</p>
+                    </div>
                 <?php else: ?>
                     <div class="d-flex flex-wrap" style="gap: 2rem;">
                         <div>
                             <p class="text-sm text-muted mb-1">Permintaan Tahunan (D) <?php if ($data['data_months'] < 12): ?><span style="color:#f59e0b; font-size:0.7rem;">proyeksi</span><?php endif; ?></p>
-                            <p class="fw-bold text-lg"><?= number_format($data['demand']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                            <p class="fw-bold text-lg"><?= format_smart($data['demand']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                            <?php if ($data['data_months'] > 0 && $data['data_months'] < 12): ?>
+                                <p class="text-xs" style="color: #9ca3af; margin-top: 0.25rem;">dari <?= number_format($data['data_months'], 1); ?> bulan data penjualan</p>
+                            <?php endif; ?>
                         </div>
                         <div>
                             <p class="text-sm text-muted mb-1">Biaya Pemesanan (S)</p>
@@ -58,39 +78,107 @@
                         </div>
                         <div style="border-left: 2px solid rgba(16, 185, 129, 0.3); padding-left: 2rem;">
                             <p class="text-sm text-muted mb-1">Kuantitas Pemesanan Optimal (EOQ)</p>
-                            <p class="fw-bold text-2xl" style="color: #10b981;"><?= number_format($data['eoq']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                            <p class="fw-bold text-2xl" style="color: #10b981;"><?= format_smart($data['eoq']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
                         </div>
                     </div>
                     <?php if($_SESSION['role'] !== 'owner'): ?>
                     <div class="mt-3">
+                        <?php if ($data['rop_status'] === 'reorder'): ?>
                         <button class="btn btn-sm" style="background: #10b981; color: #fff; font-weight: 600;" onclick="pesanSesuaiEOQ(<?= $data['eoq']; ?>)">
                             ✨ Pesan Sesuai EOQ
                         </button>
+                        <?php else: ?>
+                        <button class="btn btn-sm" style="background: rgba(255,255,255,0.1); color: #9ca3af; font-weight: 600; cursor: not-allowed;" disabled title="Stok masih aman, belum perlu reorder">
+                            ✨ Pesan Sesuai EOQ
+                        </button>
+                        <small class="text-muted text-sm d-block mt-1">Stok masih aman — belum perlu melakukan pemesanan.</small>
+                        <?php endif; ?>
                     </div>
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>
 
-        <!-- Panel ROP & Safety Stock -->
+        <!-- Panel Safety Stock -->
+        <div class="card mb-4" style="background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.2);">
+            <div class="card-body">
+                <h3 class="fw-bold mb-3" style="color: #a855f7; font-size: 1.1rem;">🛡️ Safety Stock</h3>
+                <?php if ($data['lead_time'] <= 0 || $data['demand'] <= 0): ?>
+                    <p class="text-muted text-sm mb-0">Data belum cukup untuk menghitung Safety Stock. Diperlukan minimal data penjualan dan lead time.</p>
+                <?php else: ?>
+                    <div class="mb-3" style="padding: 0.75rem 1rem; background: rgba(168, 85, 247, 0.08); border-radius: 8px;">
+                        <p class="text-sm text-muted mb-1">Formula:</p>
+                        <p class="text-sm fw-bold mb-0" style="color: #a855f7;">SS = (Permintaan Maks × Lead Time Maks) − (Permintaan Rata-rata × Lead Time Rata-rata)</p>
+                    </div>
+                    <div class="d-flex flex-wrap" style="gap: 2rem;">
+                        <div>
+                            <p class="text-sm text-muted mb-1">Permintaan Maks/hari</p>
+                            <p class="fw-bold text-lg"><?= format_smart($data['max_daily']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted mb-1">Lead Time Maks</p>
+                            <p class="fw-bold text-lg"><?= $data['lead_time_max']; ?> hari</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted mb-1">Permintaan Rata-rata/hari</p>
+                            <p class="fw-bold text-lg"><?= format_smart($data['avg_daily']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted mb-1">Lead Time Rata-rata</p>
+                            <p class="fw-bold text-lg"><?= $data['lead_time']; ?> hari</p>
+                            <?php
+                            $ltSource = $data['lead_time_source'];
+                            $sourceText = '';
+                            if ($ltSource['source'] === 'actual') {
+                                $sourceText = 'dari riwayat pesanan';
+                            } elseif ($ltSource['source'] === 'primary') {
+                                $sourceText = 'dari supplier utama: ' . htmlspecialchars($ltSource['supplier_name']);
+                            } elseif ($ltSource['source'] === 'average') {
+                                $sourceText = 'rata-rata supplier terkait';
+                            } else {
+                                $sourceText = 'rata-rata global';
+                            }
+                            ?>
+                            <p class="text-xs" style="color: #9ca3af; margin-top: 0.25rem;"><?= $sourceText; ?></p>
+                        </div>
+                        <div style="border-left: 2px solid rgba(168, 85, 247, 0.3); padding-left: 2rem;">
+                            <p class="text-sm text-muted mb-1">Hasil Safety Stock</p>
+                            <p class="fw-bold text-2xl" style="color: #a855f7;"><?= format_smart($data['safety_stock']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                            <p class="text-xs" style="color: #9ca3af; margin-top: 0.25rem;">(<?= format_smart($data['max_daily']); ?> × <?= $data['lead_time_max']; ?>) − (<?= format_smart($data['avg_daily']); ?> × <?= $data['lead_time']; ?>) = <?= format_smart($data['safety_stock']); ?></p>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Panel Reorder Point (ROP) -->
         <div class="card mb-4" style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2);">
             <div class="card-body">
-                <h3 class="fw-bold mb-3" style="color: #3b82f6; font-size: 1.1rem;">🛡️ Reorder Point & Safety Stock</h3>
+                <h3 class="fw-bold mb-3" style="color: #3b82f6; font-size: 1.1rem;">📍 Reorder Point (ROP)</h3>
                 <?php if ($data['lead_time'] <= 0 || $data['demand'] <= 0): ?>
-                    <p class="text-muted text-sm mb-0">Data belum cukup untuk menghitung ROP. Diperlukan minimal data penjualan dan pesanan yang sudah diterima untuk menghitung Lead Time.</p>
+                    <p class="text-muted text-sm mb-0">Data belum cukup untuk menghitung ROP. Diperlukan minimal data penjualan dan lead time.</p>
                 <?php else: ?>
+                    <div class="mb-3" style="padding: 0.75rem 1rem; background: rgba(59, 130, 246, 0.08); border-radius: 8px;">
+                        <p class="text-sm text-muted mb-1">Formula:</p>
+                        <p class="text-sm fw-bold mb-0" style="color: #3b82f6;">ROP = (Permintaan Rata-rata × Lead Time Rata-rata) + Safety Stock</p>
+                    </div>
                     <div class="d-flex flex-wrap" style="gap: 2rem;">
+                        <div>
+                            <p class="text-sm text-muted mb-1">Permintaan Rata-rata/hari</p>
+                            <p class="fw-bold text-lg"><?= format_smart($data['avg_daily']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                        </div>
                         <div>
                             <p class="text-sm text-muted mb-1">Lead Time Rata-rata</p>
                             <p class="fw-bold text-lg"><?= $data['lead_time']; ?> hari</p>
                         </div>
                         <div>
-                            <p class="text-sm text-muted mb-1">Safety Stock (SS)</p>
-                            <p class="fw-bold text-lg"><?= number_format($data['safety_stock']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                            <p class="text-sm text-muted mb-1">Safety Stock</p>
+                            <p class="fw-bold text-lg"><?= format_smart($data['safety_stock']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
                         </div>
                         <div style="border-left: 2px solid rgba(59, 130, 246, 0.3); padding-left: 2rem;">
-                            <p class="text-sm text-muted mb-1">Reorder Point (ROP)</p>
-                            <p class="fw-bold text-2xl" style="color: #3b82f6;"><?= number_format($data['rop']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                            <p class="text-sm text-muted mb-1">Hasil ROP</p>
+                            <p class="fw-bold text-2xl" style="color: #3b82f6;"><?= format_smart($data['rop']); ?> <?= htmlspecialchars($data['product']['unit']); ?></p>
+                            <p class="text-xs" style="color: #9ca3af; margin-top: 0.25rem;">(<?= format_smart($data['avg_daily']); ?> × <?= $data['lead_time']; ?>) + <?= format_smart($data['safety_stock']); ?> = <?= format_smart($data['rop']); ?></p>
                         </div>
                         <div>
                             <p class="text-sm text-muted mb-1">Status</p>
@@ -241,8 +329,8 @@
                     <select name="supplier_id" id="supplier_id" class="form-control" required onchange="updateEstimasi()">
                         <option value="">-- Pilih Pemasok --</option>
                         <?php foreach ($data['suppliers'] as $supplier): ?>
-                            <option value="<?= $supplier['id']; ?>" data-lead-time="<?= $supplier['default_lead_time']; ?>">
-                                <?= htmlspecialchars($supplier['name']); ?> (Lead Time: <?= $supplier['default_lead_time']; ?> hari)
+                            <option value="<?= $supplier['id']; ?>" data-lead-time="<?= $supplier['default_lead_time']; ?>" data-is-primary="<?= isset($supplier['is_primary']) && $supplier['is_primary'] ? '1' : '0'; ?>">
+                                <?= htmlspecialchars($supplier['name']); ?><?= isset($supplier['is_primary']) && $supplier['is_primary'] ? ' ★' : ''; ?> (Lead Time: <?= $supplier['default_lead_time']; ?> hari)
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -281,8 +369,8 @@
                     <select name="supplier_id" id="eoq_supplier_id" class="form-control" required onchange="updateEstimasiEOQ()">
                         <option value="">-- Pilih Pemasok --</option>
                         <?php foreach ($data['suppliers'] as $supplier): ?>
-                            <option value="<?= $supplier['id']; ?>" data-lead-time="<?= $supplier['default_lead_time']; ?>">
-                                <?= htmlspecialchars($supplier['name']); ?> (Lead Time: <?= $supplier['default_lead_time']; ?> hari)
+                            <option value="<?= $supplier['id']; ?>" data-lead-time="<?= $supplier['default_lead_time']; ?>" data-is-primary="<?= isset($supplier['is_primary']) && $supplier['is_primary'] ? '1' : '0'; ?>">
+                                <?= htmlspecialchars($supplier['name']); ?><?= isset($supplier['is_primary']) && $supplier['is_primary'] ? ' ★' : ''; ?> (Lead Time: <?= $supplier['default_lead_time']; ?> hari)
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -327,6 +415,12 @@
                 <p class="text-muted text-sm mb-2">
                     Stok tersedia: <strong style="color:var(--text-main);"><?= number_format($data['product']['stock']); ?> <?= htmlspecialchars($data['product']['unit']); ?></strong>
                 </p>
+                <div class="form-group">
+                    <label for="sale_date" class="form-label">Tanggal Transaksi <span class="text-muted text-sm">(opsional)</span></label>
+                    <input type="date" name="sale_date" id="sale_date"
+                           class="form-control" value="<?= date('Y-m-d'); ?>">
+                    <small class="text-muted text-sm">Kosongkan untuk menggunakan tanggal hari ini</small>
+                </div>
                 <div class="form-group">
                     <label for="sale_quantity" class="form-label">Kuantitas Penjualan</label>
                     <input type="number" name="quantity" id="sale_quantity"
@@ -400,6 +494,27 @@ function hitungAmountSale() {
 function openModal(id) {
     document.getElementById(id).classList.add('active');
     document.body.style.overflow = 'hidden';
+    
+    // Auto-select primary supplier jika ada
+    if (id === 'modalOrder' || id === 'modalEOQ') {
+        const selectId = id === 'modalOrder' ? 'supplier_id' : 'eoq_supplier_id';
+        const select = document.getElementById(selectId);
+        if (select) {
+            // Cari option dengan data-is-primary="1"
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].getAttribute('data-is-primary') === '1') {
+                    select.selectedIndex = i;
+                    // Trigger update estimasi
+                    if (id === 'modalOrder') {
+                        updateEstimasi();
+                    } else {
+                        updateEstimasiEOQ();
+                    }
+                    break;
+                }
+            }
+        }
+    }
 }
 
 function closeModal(id) {

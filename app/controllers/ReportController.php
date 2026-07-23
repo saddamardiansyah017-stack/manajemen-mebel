@@ -60,7 +60,7 @@ class ReportController extends Controller {
             $demand        = $demandData['annualized_demand'];
             $ordering_cost = (float) $product['ordering_cost'];
             $holding_cost  = (float) $product['holding_cost'];
-            $leadTime      = $orderModel->getAverageLeadTime($product['id']);
+            $leadTimeStats = $orderModel->getLeadTimeStats($product['id']);
             $demandStats   = $saleModel->getDailyDemandStatsByPeriod($product['id'], $dari, $sampai);
 
             $metrics = InventoryCalculator::calculateAll([
@@ -69,7 +69,8 @@ class ReportController extends Controller {
                 'holding_cost'  => $holding_cost,
                 'max_daily'     => $demandStats['max_daily'],
                 'avg_daily'     => $demandStats['avg_daily'],
-                'lead_time'     => $leadTime,
+                'lead_time'     => $leadTimeStats['avg'],
+                'lead_time_max' => $leadTimeStats['max'],
                 'stock'         => (int) $product['stock'],
             ]);
 
@@ -80,7 +81,7 @@ class ReportController extends Controller {
             $product['demand']            = $demand;
             $product['data_months']       = $demandData['data_months'];
             $product['eoq']               = $metrics['eoq'];
-            $product['lead_time']         = $leadTime;
+            $product['lead_time']         = $leadTimeStats['avg'];
             $product['safety_stock']      = $metrics['safety_stock'];
             $product['rop']               = $metrics['rop'];
             $product['rop_status']        = $metrics['rop_status'];

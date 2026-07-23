@@ -29,20 +29,22 @@ class InventoryCalculator
 
     /**
      * Hitung Safety Stock
-     * Metode: (Max daily demand - Avg daily demand) × Lead Time
+     * Metode: (Max daily demand × Max Lead Time) - (Avg daily demand × Avg Lead Time)
      * 
-     * @param float $maxDaily  Penjualan harian maksimum
-     * @param float $avgDaily  Rata-rata penjualan harian
-     * @param float $leadTime  Lead time rata-rata (dalam hari)
+     * @param float $maxDaily    Penjualan harian maksimum
+     * @param float $avgDaily    Rata-rata penjualan harian
+     * @param float $leadTime    Lead time rata-rata (dalam hari) — digunakan jika leadTimeMax tidak diberikan
+     * @param float $leadTimeMax Lead time maksimum (opsional)
      * @return int Safety Stock (dibulatkan ke atas), 0 jika parameter tidak valid
      */
-    public static function calculateSafetyStock($maxDaily, $avgDaily, $leadTime): int
+    public static function calculateSafetyStock($maxDaily, $avgDaily, $leadTime, $leadTimeMax = null): int
     {
         if ($leadTime <= 0 || $avgDaily <= 0) {
             return 0;
         }
 
-        $ss = ($maxDaily - $avgDaily) * $leadTime;
+        $ltMax = $leadTimeMax ?? $leadTime;
+        $ss = ($maxDaily * $ltMax) - ($avgDaily * $leadTime);
         return (int) ceil(max(0, $ss));
     }
 
@@ -109,10 +111,11 @@ class InventoryCalculator
         $maxDaily     = $params['max_daily'] ?? 0;
         $avgDaily     = $params['avg_daily'] ?? 0;
         $leadTime     = $params['lead_time'] ?? 0;
+        $leadTimeMax  = $params['lead_time_max'] ?? $leadTime;
         $stock        = $params['stock'] ?? 0;
 
         $eoq         = self::calculateEOQ($demand, $orderingCost, $holdingCost);
-        $safetyStock = self::calculateSafetyStock($maxDaily, $avgDaily, $leadTime);
+        $safetyStock = self::calculateSafetyStock($maxDaily, $avgDaily, $leadTime, $leadTimeMax);
         $rop         = self::calculateROP($avgDaily, $leadTime, $safetyStock);
         $ropStatus   = self::determineROPStatus($stock, $rop, $leadTime, $avgDaily);
 

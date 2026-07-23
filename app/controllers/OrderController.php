@@ -35,8 +35,10 @@ class OrderController extends Controller {
         $demand        = $demandData['annualized_demand'];
         $ordering_cost = (float) $product['ordering_cost'];
         $holding_cost  = (float) $product['holding_cost'];
-        $leadTime      = $orderModel->getAverageLeadTime($product_id);
-        $demandStats   = $saleModel->getDailyDemandStats($product_id);
+        $leadTime       = $orderModel->getAverageLeadTime($product_id);
+        $leadTimeSource = $orderModel->getLeadTimeSource($product_id);
+        $leadTimeStats  = $orderModel->getLeadTimeStats($product_id);
+        $demandStats    = $saleModel->getDailyDemandStats($product_id);
 
         $metrics = InventoryCalculator::calculateAll([
             'demand'        => $demand,
@@ -44,25 +46,31 @@ class OrderController extends Controller {
             'holding_cost'  => $holding_cost,
             'max_daily'     => $demandStats['max_daily'],
             'avg_daily'     => $demandStats['avg_daily'],
-            'lead_time'     => $leadTime,
+            'lead_time'     => $leadTimeStats['avg'],
+            'lead_time_max' => $leadTimeStats['max'],
             'stock'         => (int) $product['stock'],
         ]);
 
         $data = [
-            'product'       => $product,
-            'orders'        => $orderModel->getOrdersByProduct($product_id),
-            'sales'         => $saleModel->getSalesByProduct($product_id),
-            'suppliers'     => $suppliers,
-            'demand'        => $demand,
-            'data_months'   => $demandData['data_months'],
-            'ordering_cost' => $ordering_cost,
-            'holding_cost'  => $holding_cost,
-            'eoq'           => $metrics['eoq'],
-            'lead_time'     => $leadTime,
-            'safety_stock'  => $metrics['safety_stock'],
-            'rop'           => $metrics['rop'],
-            'rop_status'    => $metrics['rop_status'],
-            'error'         => '',
+            'product'         => $product,
+            'orders'          => $orderModel->getOrdersByProduct($product_id),
+            'sales'           => $saleModel->getSalesByProduct($product_id),
+            'suppliers'       => $suppliers,
+            'demand'          => $demand,
+            'data_months'     => $demandData['data_months'],
+            'ordering_cost'   => $ordering_cost,
+            'holding_cost'    => $holding_cost,
+            'eoq'             => $metrics['eoq'],
+            'lead_time'       => $leadTimeStats['avg'],
+            'lead_time_max'   => $leadTimeStats['max'],
+            'lead_time_stats' => $leadTimeStats,
+            'lead_time_source'=> $leadTimeSource,
+            'max_daily'       => $demandStats['max_daily'],
+            'avg_daily'       => $demandStats['avg_daily'],
+            'safety_stock'    => $metrics['safety_stock'],
+            'rop'             => $metrics['rop'],
+            'rop_status'      => $metrics['rop_status'],
+            'error'           => '',
             'success'       => '',
         ];
 
@@ -102,6 +110,7 @@ class OrderController extends Controller {
             } elseif ($action === 'sale') {
                 // --- Kurangi Stok ---
                 $quantity = (int) $_POST['quantity'];
+                $saleDate = !empty($_POST['sale_date']) ? $_POST['sale_date'] : date('Y-m-d');
 
                 if ($quantity <= 0) {
                     $data['error'] = 'Kuantitas penjualan harus lebih dari 0.';
@@ -110,7 +119,7 @@ class OrderController extends Controller {
                 } else {
                     $amount   = $quantity * $product['price'];
                     $saleData = [
-                        'date'       => date('Y-m-d H:i:s'),
+                        'date'       => $saleDate . ' ' . date('H:i:s'),
                         'quantity'   => $quantity,
                         'amount'     => $amount,
                         'created_by' => $_SESSION['user_id'],

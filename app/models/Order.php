@@ -89,7 +89,23 @@ class Order {
             return $actual;
         }
 
-        // 2. Fallback: default_lead_time dari supplier terkait produk
+        // 2. Fallback: default_lead_time dari primary supplier jika ada
+        $this->db->query('
+            SELECT s.default_lead_time
+            FROM product_suppliers ps
+            JOIN suppliers s ON ps.supplier_id = s.id
+            WHERE ps.product_id = :product_id AND ps.is_primary = 1
+            LIMIT 1
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $result = $this->db->single();
+        $fromPrimary = $result ? round((float) $result['default_lead_time'], 1) : 0;
+
+        if ($fromPrimary > 0) {
+            return $fromPrimary;
+        }
+
+        // 3. Fallback: rata-rata default_lead_time dari semua supplier terkait produk
         $this->db->query('
             SELECT AVG(s.default_lead_time) AS avg_lead_time
             FROM product_suppliers ps
@@ -104,12 +120,154 @@ class Order {
             return $fromSuppliers;
         }
 
-        // 3. Fallback: rata-rata global semua supplier
+        // 4. Fallback: rata-rata global semua supplier
         $this->db->query('SELECT AVG(default_lead_time) AS avg_lead_time FROM suppliers');
         $result = $this->db->single();
         $global = $result['avg_lead_time'] ? round((float) $result['avg_lead_time'], 1) : 0;
 
         return $global > 0 ? $global : 7.0;
+    }
+
+    /**
+     * Dapatkan informasi sumber lead time (untuk display purposes)
+     * Returns: ['source' => string, 'supplier_name' => string|null]
+     */
+    public function getLeadTimeSource($product_id) {
+        // 1. Cek apakah ada data aktual dari riwayat order
+        $this->db->query('
+            SELECT AVG(DATEDIFF(received_date, date)) AS avg_lead_time
+            FROM orders
+            WHERE product_id = :product_id
+              AND received_date IS NOT NULL
+              AND received_date >= date
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $result = $this->db->single();
+        $actual = $result['avg_lead_time'] ? round((float) $result['avg_lead_time'], 1) : 0;
+        
+        if ($actual > 0) {
+            return ['source' => 'actual', 'supplier_name' => null];
+        }
+
+        // 2. Cek primary supplier
+        $this->db->query('
+            SELECT s.name, s.default_lead_time
+            FROM product_suppliers ps
+            JOIN suppliers s ON ps.supplier_id = s.id
+            WHERE ps.product_id = :product_id AND ps.is_primary = 1
+            LIMIT 1
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $result = $this->db->single();
+        
+        if ($result && $result['default_lead_time'] > 0) {
+            return ['source' => 'primary', 'supplier_name' => $result['name']];
+        }
+
+        // 3. Cek rata-rata supplier terkait produk
+        $this->db->query('
+            SELECT AVG(s.default_lead_time) AS avg_lead_time
+            FROM product_suppliers ps
+            JOIN suppliers s ON ps.supplier_id = s.id
+            WHERE ps.product_id = :product_id
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $result = $this->db->single();
+        
+        if ($result['avg_lead_time'] > 0) {
+            return ['source' => 'average', 'supplier_name' => null];
+        }
+
+        // 4. Global atau default
+        return ['source' => 'global', 'supplier_name' => null];
+    }
+
+    /**
+     * Dapatkan statistik lead time (maks dan rata-rata)
+     * Returns: ['max' => float, 'avg' => float, 'source' => string, 'supplier_name' => string|null]
+     */
+    public function getLeadTimeStats($product_id) {
+        // 1. Prioritas: data aktual dari riwayat order yang sudah diterima
+        $this->db->query('
+            SELECT 
+                MAX(DATEDIFF(received_date, date)) AS max_lead_time,
+                AVG(DATEDIFF(received_date, date)) AS avg_lead_time
+            FROM orders
+            WHERE product_id = :product_id
+              AND received_date IS NOT NULL
+              AND received_date >= date
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $result = $this->db->single();
+        
+        if ($result && $result['avg_lead_time'] > 0) {
+            return [
+                'max'           => round((float) $result['max_lead_time'], 1),
+                'avg'           => round((float) $result['avg_lead_time'], 1),
+                'source'        => 'actual',
+                'supplier_name' => null,
+            ];
+        }
+
+        // 2. Fallback: dari primary supplier (maks = rata-rata karena hanya satu nilai)
+        $this->db->query('
+            SELECT s.name, s.default_lead_time
+            FROM product_suppliers ps
+            JOIN suppliers s ON ps.supplier_id = s.id
+            WHERE ps.product_id = :product_id AND ps.is_primary = 1
+            LIMIT 1
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $result = $this->db->single();
+        
+        if ($result && $result['default_lead_time'] > 0) {
+            $lt = round((float) $result['default_lead_time'], 1);
+            return [
+                'max'           => $lt,
+                'avg'           => $lt,
+                'source'        => 'primary',
+                'supplier_name' => $result['name'],
+            ];
+        }
+
+        // 3. Fallback: dari semua supplier terkait produk
+        $this->db->query('
+            SELECT MAX(s.default_lead_time) AS max_lt, AVG(s.default_lead_time) AS avg_lt
+            FROM product_suppliers ps
+            JOIN suppliers s ON ps.supplier_id = s.id
+            WHERE ps.product_id = :product_id
+        ');
+        $this->db->bind(':product_id', $product_id);
+        $result = $this->db->single();
+        
+        if ($result && $result['avg_lt'] > 0) {
+            return [
+                'max'           => round((float) $result['max_lt'], 1),
+                'avg'           => round((float) $result['avg_lt'], 1),
+                'source'        => 'average',
+                'supplier_name' => null,
+            ];
+        }
+
+        // 4. Fallback: global
+        $this->db->query('SELECT MAX(default_lead_time) AS max_lt, AVG(default_lead_time) AS avg_lt FROM suppliers');
+        $result = $this->db->single();
+        
+        if ($result && $result['avg_lt'] > 0) {
+            return [
+                'max'           => round((float) $result['max_lt'], 1),
+                'avg'           => round((float) $result['avg_lt'], 1),
+                'source'        => 'global',
+                'supplier_name' => null,
+            ];
+        }
+
+        return [
+            'max'           => 7.0,
+            'avg'           => 7.0,
+            'source'        => 'global',
+            'supplier_name' => null,
+        ];
     }
 
     public function updateReceivedDate($id, $received_date) {
